@@ -11,17 +11,21 @@ import 'package:google_docs/repository/document_repository.dart';
 import 'package:google_docs/widgets/loader.dart';
 import 'package:routemaster/routemaster.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
 
-  void signOut(WidgetRef ref) {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void signOut() {
     ref.read(authRepositoryProvider).signOut();
 
     ref.read(userProvider.notifier).update((state) => null);
   }
 
-  void createDocument(BuildContext context, WidgetRef ref) async {
+  void createDocument(BuildContext context) async {
     final ResponseModel response =
         await ref.read(documentRepositoryProvider).createDocument();
 
@@ -38,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
+  Widget build(BuildContext context) {
     print("Build method called");
     return Scaffold(
         appBar: AppBar(
@@ -47,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
           actions: [
             IconButton(
                 onPressed: () {
-                  createDocument(context, ref);
+                  createDocument(context);
                 },
                 icon: Icon(
                   Icons.add,
@@ -55,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                 )),
             IconButton(
                 onPressed: () {
-                  signOut(ref);
+                  signOut();
                 },
                 icon: Icon(
                   Icons.logout,
@@ -63,26 +67,34 @@ class HomeScreen extends ConsumerWidget {
                 ))
           ],
         ),
-        body: FutureBuilder<ResponseModel?>(
+        body: FutureBuilder<ApiResponseDocumentModels?>(
             future: ref.read(documentRepositoryProvider).getDocuments(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Loader();
               } else {
-                ApiResponseDocumentModels apiResponseDocumentModels =
-                    (snapshot.data!.data as ApiResponseDocumentModels);
+                // ApiResponseDocumentModels apiResponseDocumentModels =
+                //     (snapshot.data!.data as ApiResponseDocumentModels);
+
+                if (snapshot.data == null) {
+                  return const Loader();
+                }
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   child: ListView.builder(
-                      itemCount: apiResponseDocumentModels.documents.length,
+                      itemCount: snapshot.data!.documents.length,
                       itemBuilder: (context, index) {
                         DocumentModel document =
-                            apiResponseDocumentModels.documents[index];
+                            snapshot.data!.documents[index];
 
                         return InkWell(
                           onTap: (() {
                             navigateToDocument(context, document.id);
+                            // setState(() {
+                              
+                            // });
+                            
                           }),
                           child: Card(
                             margin: EdgeInsets.only(top: 10, bottom: 10),

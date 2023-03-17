@@ -52,9 +52,11 @@ class DocumentRepository {
     return response;
   }
 
-  Future<ResponseModel> getDocuments() async {
+  Future<ApiResponseDocumentModels?> getDocuments() async {
     ResponseModel response = ResponseModel(
         success: false, message: "Some unknown error occured", data: null);
+
+    ApiResponseDocumentModels? documents;
 
     try {
       String token = Prefs.getToken("TOKEN");
@@ -63,11 +65,9 @@ class DocumentRepository {
         var res = await _dio.get("api/docs/me",
             options: Options(headers: {"x-auth-token": token}));
 
-        
-
         switch (res.statusCode) {
           case 200:
-            ApiResponseDocumentModels documents =
+             documents =
                 ApiResponseDocumentModels.fromJson(res.data.toString());
             print(documents);
             response = ResponseModel(
@@ -81,10 +81,11 @@ class DocumentRepository {
         }
       }
     } catch (e) {
+      documents = null;
       response =
           ResponseModel(success: false, message: e.toString(), data: null);
     }
-    return response;
+    return documents;
   }
 
   Future<ResponseModel> updateDocumentTitle(String id, String title) async {
@@ -135,7 +136,6 @@ class DocumentRepository {
         var res = await _dio.get("api/docs/$id",
             options: Options(headers: {"x-auth-token": token}));
 
-       
         switch (res.statusCode) {
           case 200:
             final document = DocumentModel.fromJson(res.data.toString());
@@ -150,8 +150,8 @@ class DocumentRepository {
         }
       }
     } catch (e) {
-      ResponseModel response = ResponseModel(
-          success: false, message: e.toString(), data: null);
+      ResponseModel response =
+          ResponseModel(success: false, message: e.toString(), data: null);
     }
     return response;
   }
