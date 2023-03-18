@@ -37,6 +37,7 @@ class DocumentRepository {
                 success: true,
                 message: "Successfully created document",
                 data: document);
+
             break;
           default:
             response = ResponseModel(
@@ -52,7 +53,7 @@ class DocumentRepository {
     return response;
   }
 
-  Future<ApiResponseDocumentModels?> getDocuments() async {
+  Future<ResponseModel> getDocuments() async {
     ResponseModel response = ResponseModel(
         success: false, message: "Some unknown error occured", data: null);
 
@@ -67,9 +68,7 @@ class DocumentRepository {
 
         switch (res.statusCode) {
           case 200:
-             documents =
-                ApiResponseDocumentModels.fromJson(res.data.toString());
-            print(documents);
+            documents = ApiResponseDocumentModels.fromJson(res.data.toString());
             response = ResponseModel(
                 success: true,
                 message: "Successfully fetched document",
@@ -85,7 +84,7 @@ class DocumentRepository {
       response =
           ResponseModel(success: false, message: e.toString(), data: null);
     }
-    return documents;
+    return response;
   }
 
   Future<ResponseModel> updateDocumentTitle(String id, String title) async {
@@ -99,13 +98,14 @@ class DocumentRepository {
           DocumentModel(id: id, uid: " ", title: title, content: []);
 
       if (token != " ") {
-        var res = await _dio.post("api/docs/title",
+        var res = await _dio.put("api/docs/title",
             data: document.toJson(),
             options: Options(headers: {"x-auth-token": token}));
 
         switch (res.statusCode) {
           case 200:
             final document = DocumentModel.fromJson(res.data.toString());
+            print(document);
             response = ResponseModel(
                 success: true,
                 message: "Successfully updated document title",

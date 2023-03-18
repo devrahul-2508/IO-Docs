@@ -11,6 +11,10 @@ import 'package:google_docs/repository/document_repository.dart';
 import 'package:google_docs/widgets/loader.dart';
 import 'package:routemaster/routemaster.dart';
 
+final documentProvider =
+    StateNotifierProvider<DocumentNotifier, List<DocumentModel>>(
+        (ref) => DocumentNotifier([]));
+
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -19,6 +23,24 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchDocuments();
+  }
+
+  void fetchDocuments() async {
+    ResponseModel responseModel =
+        await ref.read(documentRepositoryProvider).getDocuments();
+
+    if (responseModel.success) {
+   
+        ref.read(documentProvider.notifier).state = responseModel.data.documents;
+      
+    }
+  }
+
   void signOut() {
     ref.read(authRepositoryProvider).signOut();
 
@@ -26,24 +48,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void createDocument(BuildContext context) async {
+    final navigator = Routemaster.of(context);
+    final snackbar = ScaffoldMessenger.of(context);
     final ResponseModel response =
         await ref.read(documentRepositoryProvider).createDocument();
 
     if (response.data != null) {
-      Routemaster.of(context).push("/document/${response.data.id}");
+      navigator.push("/document/${response.data.id}");
+      ref.read(documentProvider.notifier).addDocument(response.data);
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(response.message)));
+      snackbar.showSnackBar(SnackBar(content: Text(response.message)));
     }
   }
 
-  void navigateToDocument(BuildContext context, String documentId) {
+  void navigateToDocument(BuildContext context, String documentId) async {
     Routemaster.of(context).push('/document/$documentId');
   }
 
   @override
   Widget build(BuildContext context) {
-    print("Build method called");
+    final documents = ref.watch(documentProvider);
+    print(documents);
     return Scaffold(
         appBar: AppBar(
           backgroundColor: kWhiteColor,
@@ -67,51 +92,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ))
           ],
         ),
-        body: FutureBuilder<ApiResponseDocumentModels?>(
-            future: ref.read(documentRepositoryProvider).getDocuments(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Loader();
-              } else {
-                // ApiResponseDocumentModels apiResponseDocumentModels =
-                //     (snapshot.data!.data as ApiResponseDocumentModels);
+        body: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          child: ListView.builder(
+              itemCount: documents.length,
+              itemBuilder: (context, index) {
+                DocumentModel document = documents[index];
 
-                if (snapshot.data == null) {
-                  return const Loader();
-                }
+                return InkWell(
+                  onTap: (() {
+                    navigateToDocument(context, document.id);
+                    // setState(() {
 
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: ListView.builder(
-                      itemCount: snapshot.data!.documents.length,
-                      itemBuilder: (context, index) {
-                        DocumentModel document =
-                            snapshot.data!.documents[index];
-
-                        return InkWell(
-                          onTap: (() {
-                            navigateToDocument(context, document.id);
-                            // setState(() {
-                              
-                            // });
-                            
-                          }),
-                          child: Card(
-                            margin: EdgeInsets.only(top: 10, bottom: 10),
-                            child: Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 20),
-                                child: Text(
-                                  document.title,
-                                  style: TextStyle(fontSize: 17),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
+                    // });
+                  }),
+                  child: Card(
+                    margin: EdgeInsets.only(top: 10, bottom: 10),
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          document.title,
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                    ),
+                  ),
                 );
-              }
-            }));
+              }),
+        ));
   }
 }

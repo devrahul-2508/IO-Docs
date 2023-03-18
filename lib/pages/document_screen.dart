@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_docs/colors.dart';
 import 'package:google_docs/models/document_model.dart';
 import 'package:google_docs/models/error_model.dart';
+import 'package:google_docs/pages/home_screen.dart';
 import 'package:google_docs/repository/document_repository.dart';
 import 'package:google_docs/repository/socket_repository.dart';
 import 'package:google_docs/widgets/loader.dart';
@@ -21,6 +22,8 @@ class DocumentScreen extends ConsumerStatefulWidget {
 }
 
 class _DocumentScreenState extends ConsumerState<DocumentScreen> {
+  
+
   TextEditingController titleController =
       TextEditingController(text: "Untitled Document");
 
@@ -59,8 +62,13 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
     _controller!.dispose();
   }
 
-  void updateDocumentTitle(WidgetRef ref, String title) {
-    ref.read(documentRepositoryProvider).updateDocumentTitle(widget.id, title);
+  void updateDocumentTitle(WidgetRef ref, String title) async {
+    ResponseModel responseModel = await ref
+        .read(documentRepositoryProvider)
+        .updateDocumentTitle(widget.id, title);
+    if (responseModel.success) {
+      ref.read(documentProvider.notifier).updateDocument(responseModel.data);
+    }
   }
 
   void fetchDocumentData() async {
