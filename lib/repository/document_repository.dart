@@ -98,7 +98,7 @@ class DocumentRepository {
           DocumentModel(id: id, uid: " ", title: title, content: []);
 
       if (token != " ") {
-        var res = await _dio.post("api/docs/title",
+        var res = await _dio.put("api/docs/title",
             data: document.toJson(),
             options: Options(headers: {"x-auth-token": token}));
 
