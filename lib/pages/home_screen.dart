@@ -35,9 +35,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         await ref.read(documentRepositoryProvider).getDocuments();
 
     if (responseModel.success) {
-   
-        ref.read(documentProvider.notifier).state = responseModel.data.documents;
-      
+      ref.read(documentProvider.notifier).state = responseModel.data.documents;
     }
   }
 
@@ -55,6 +53,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (response.data != null) {
       navigator.push("/document/${response.data.id}");
+      Future.delayed(Duration(seconds: 1));
       ref.read(documentProvider.notifier).addDocument(response.data);
     } else {
       snackbar.showSnackBar(SnackBar(content: Text(response.message)));

@@ -22,8 +22,6 @@ class DocumentScreen extends ConsumerStatefulWidget {
 }
 
 class _DocumentScreenState extends ConsumerState<DocumentScreen> {
-  
-
   TextEditingController titleController =
       TextEditingController(text: "Untitled Document");
 
@@ -152,7 +150,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
               width: 10,
             ),
             SizedBox(
-              width: 200,
+              width: 150,
               child: TextField(
                 controller: titleController,
                 decoration: InputDecoration(
