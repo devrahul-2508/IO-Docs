@@ -53,7 +53,7 @@ class DocumentRepository {
     return response;
   }
 
-  Future<ResponseModel> getDocuments() async {
+  Future<ResponseModel> getDocuments(String query) async {
     ResponseModel response = ResponseModel(
         success: false, message: "Some unknown error occured", data: null);
 
@@ -64,11 +64,13 @@ class DocumentRepository {
 
       if (token != " ") {
         var res = await _dio.get("api/docs/me",
+            queryParameters: {"title": query},
             options: Options(headers: {"x-auth-token": token}));
 
         switch (res.statusCode) {
           case 200:
             documents = ApiResponseDocumentModels.fromJson(res.data.toString());
+            print(documents);
             response = ResponseModel(
                 success: true,
                 message: "Successfully fetched document",

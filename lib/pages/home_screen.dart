@@ -9,6 +9,7 @@ import 'package:google_docs/models/error_model.dart';
 import 'package:google_docs/repository/auth_repository.dart';
 import 'package:google_docs/repository/document_repository.dart';
 import 'package:google_docs/widgets/loader.dart';
+import 'package:google_docs/widgets/responsive_widget.dart';
 import 'package:routemaster/routemaster.dart';
 
 final documentProvider =
@@ -32,7 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   void fetchDocuments() async {
     ResponseModel responseModel =
-        await ref.read(documentRepositoryProvider).getDocuments();
+        await ref.read(documentRepositoryProvider).getDocuments("");
 
     if (responseModel.success) {
       ref.read(documentProvider.notifier).state = responseModel.data.documents;
@@ -64,12 +65,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Routemaster.of(context).push('/document/$documentId');
   }
 
+  void searchDocument(String query) async {
+    ResponseModel responseModel =
+        await ref.read(documentRepositoryProvider).getDocuments(query);
+
+    if (responseModel.success) {
+      ref.read(documentProvider.notifier).state = responseModel.data.documents;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final documents = ref.watch(documentProvider);
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
-    print(documents);
     return Scaffold(
         appBar: AppBar(
           backgroundColor: kWhiteColor,
@@ -96,18 +105,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         body: Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: width*0.036 ),
+              padding: EdgeInsets.symmetric(horizontal: width * 0.036),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: "Search for documents",
+                    hintText: "Search for documents",
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20))),
+                onChanged: (value) {
+                  searchDocument(value);
+                },
               ),
             ),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
-                child: ListView.builder(
+                child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: ResponsiveWidget.isSmallScreen(context)?800:(ResponsiveWidget.isMediumScreen(context)?400:300),
+                        childAspectRatio: 3 / 2,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20),
                     itemCount: documents.length,
                     itemBuilder: (context, index) {
                       DocumentModel document = documents[index];
