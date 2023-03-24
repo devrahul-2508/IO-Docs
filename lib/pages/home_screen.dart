@@ -67,6 +67,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final documents = ref.watch(documentProvider);
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     print(documents);
     return Scaffold(
         appBar: AppBar(
@@ -91,34 +93,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ))
           ],
         ),
-        body: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: ListView.builder(
-              itemCount: documents.length,
-              itemBuilder: (context, index) {
-                DocumentModel document = documents[index];
+        body: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width*0.036 ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Search for documents",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20))),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: ListView.builder(
+                    itemCount: documents.length,
+                    itemBuilder: (context, index) {
+                      DocumentModel document = documents[index];
 
-                return InkWell(
-                  onTap: (() {
-                    navigateToDocument(context, document.id);
-                    // setState(() {
+                      return InkWell(
+                        onTap: (() {
+                          navigateToDocument(context, document.id);
+                          // setState(() {
 
-                    // });
-                  }),
-                  child: Card(
-                    margin: EdgeInsets.only(top: 10, bottom: 10),
-                    child: Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Text(
-                          document.title,
-                          style: TextStyle(fontSize: 17),
+                          // });
+                        }),
+                        child: Card(
+                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text(
+                                document.title,
+                                style: TextStyle(fontSize: 17),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
+                      );
+                    }),
+              ),
+            )
+          ],
         ));
   }
 }
