@@ -142,7 +142,7 @@ class _DocumentScreenState extends ConsumerState<DocumentScreen> {
                 Routemaster.of(context).replace('/');
               },
               child: Image.asset(
-                'assets/images/gdocslogo.png',
+                'assets/images/docscloud.png',
                 height: 40,
               ),
             ),

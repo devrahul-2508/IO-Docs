@@ -221,7 +221,7 @@ class LoginScreen extends ConsumerWidget {
                                 ? width * 0.3
                                 : (ResponsiveWidget.isMediumScreen(context)
                                     ? width * 0.4
-                                    : width * 0.5),
+                                    : width * 0.65),
                             padding: EdgeInsets.symmetric(
                                 horizontal: 70.0, vertical: 18.0),
                             decoration: BoxDecoration(
@@ -251,7 +251,7 @@ class LoginScreen extends ConsumerWidget {
                                 ? width * 0.3
                                 : (ResponsiveWidget.isMediumScreen(context)
                                     ? width * 0.4
-                                    : width * 0.5),
+                                    : width * 0.65),
                             padding: EdgeInsets.symmetric(
                                 vertical: 18.0, horizontal: 25),
                             decoration: BoxDecoration(

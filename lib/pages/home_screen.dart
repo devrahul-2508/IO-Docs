@@ -104,6 +104,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         body: Column(
           children: [
+            SizedBox(
+              height: 20,
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: width * 0.036),
               child: TextField(
@@ -116,12 +119,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 },
               ),
             ),
+            SizedBox(
+              height: 10,
+            ),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: ResponsiveWidget.isSmallScreen(context)?800:(ResponsiveWidget.isMediumScreen(context)?400:300),
+                        maxCrossAxisExtent:
+                            ResponsiveWidget.isSmallScreen(context)
+                                ? 800
+                                : (ResponsiveWidget.isMediumScreen(context)
+                                    ? 400
+                                    : 300),
                         childAspectRatio: 3 / 2,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20),
