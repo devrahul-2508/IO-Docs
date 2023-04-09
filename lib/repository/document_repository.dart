@@ -37,6 +37,7 @@ class DocumentRepository {
                 success: true,
                 message: "Successfully created document",
                 data: document);
+
             break;
           default:
             response = ResponseModel(
@@ -52,23 +53,23 @@ class DocumentRepository {
     return response;
   }
 
-  Future<ResponseModel> getDocuments() async {
+  Future<ResponseModel> getDocuments(String query) async {
     ResponseModel response = ResponseModel(
         success: false, message: "Some unknown error occured", data: null);
+
+    ApiResponseDocumentModels? documents;
 
     try {
       String token = Prefs.getToken("TOKEN");
 
       if (token != " ") {
         var res = await _dio.get("api/docs/me",
+            queryParameters: {"title": query},
             options: Options(headers: {"x-auth-token": token}));
-
-        
 
         switch (res.statusCode) {
           case 200:
-            ApiResponseDocumentModels documents =
-                ApiResponseDocumentModels.fromJson(res.data.toString());
+            documents = ApiResponseDocumentModels.fromJson(res.data.toString());
             print(documents);
             response = ResponseModel(
                 success: true,
@@ -81,6 +82,7 @@ class DocumentRepository {
         }
       }
     } catch (e) {
+      documents = null;
       response =
           ResponseModel(success: false, message: e.toString(), data: null);
     }
@@ -105,6 +107,7 @@ class DocumentRepository {
         switch (res.statusCode) {
           case 200:
             final document = DocumentModel.fromJson(res.data.toString());
+            print(document);
             response = ResponseModel(
                 success: true,
                 message: "Successfully updated document title",
@@ -135,7 +138,6 @@ class DocumentRepository {
         var res = await _dio.get("api/docs/$id",
             options: Options(headers: {"x-auth-token": token}));
 
-       
         switch (res.statusCode) {
           case 200:
             final document = DocumentModel.fromJson(res.data.toString());
@@ -150,8 +152,8 @@ class DocumentRepository {
         }
       }
     } catch (e) {
-      ResponseModel response = ResponseModel(
-          success: false, message: e.toString(), data: null);
+      ResponseModel response =
+          ResponseModel(success: false, message: e.toString(), data: null);
     }
     return response;
   }

@@ -9,37 +9,76 @@ import 'package:google_docs/models/error_model.dart';
 import 'package:google_docs/repository/auth_repository.dart';
 import 'package:google_docs/repository/document_repository.dart';
 import 'package:google_docs/widgets/loader.dart';
+import 'package:google_docs/widgets/responsive_widget.dart';
 import 'package:routemaster/routemaster.dart';
 
-class HomeScreen extends ConsumerWidget {
+final documentProvider =
+    StateNotifierProvider<DocumentNotifier, List<DocumentModel>>(
+        (ref) => DocumentNotifier([]));
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
 
-  void signOut(WidgetRef ref) {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchDocuments();
+  }
+
+  void fetchDocuments() async {
+    ResponseModel responseModel =
+        await ref.read(documentRepositoryProvider).getDocuments("");
+
+    if (responseModel.success) {
+      ref.read(documentProvider.notifier).state = responseModel.data.documents;
+    }
+  }
+
+  void signOut() {
     ref.read(authRepositoryProvider).signOut();
 
     ref.read(userProvider.notifier).update((state) => null);
   }
 
-  void createDocument(BuildContext context, WidgetRef ref) async {
+  void createDocument(BuildContext context) async {
+    final navigator = Routemaster.of(context);
+    final snackbar = ScaffoldMessenger.of(context);
     final ResponseModel response =
         await ref.read(documentRepositoryProvider).createDocument();
 
     if (response.data != null) {
-      Routemaster.of(context).push("/document/${response.data.id}");
+      navigator.push("/document/${response.data.id}");
+      Future.delayed(Duration(seconds: 1));
+      ref.read(documentProvider.notifier).addDocument(response.data);
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(response.message)));
+      snackbar.showSnackBar(SnackBar(content: Text(response.message)));
     }
   }
 
-  void navigateToDocument(BuildContext context, String documentId) {
+  void navigateToDocument(BuildContext context, String documentId) async {
     Routemaster.of(context).push('/document/$documentId');
   }
 
+  void searchDocument(String query) async {
+    ResponseModel responseModel =
+        await ref.read(documentRepositoryProvider).getDocuments(query);
+
+    if (responseModel.success) {
+      ref.read(documentProvider.notifier).state = responseModel.data.documents;
+    }
+  }
+
   @override
-  Widget build(BuildContext context,WidgetRef ref) {
-    print("Build method called");
+  Widget build(BuildContext context) {
+    final documents = ref.watch(documentProvider);
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: kWhiteColor,
@@ -47,7 +86,7 @@ class HomeScreen extends ConsumerWidget {
           actions: [
             IconButton(
                 onPressed: () {
-                  createDocument(context, ref);
+                  createDocument(context);
                 },
                 icon: Icon(
                   Icons.add,
@@ -55,7 +94,7 @@ class HomeScreen extends ConsumerWidget {
                 )),
             IconButton(
                 onPressed: () {
-                  signOut(ref);
+                  signOut();
                 },
                 icon: Icon(
                   Icons.logout,
@@ -63,43 +102,68 @@ class HomeScreen extends ConsumerWidget {
                 ))
           ],
         ),
-        body: FutureBuilder<ResponseModel?>(
-            future: ref.read(documentRepositoryProvider).getDocuments(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Loader();
-              } else {
-                ApiResponseDocumentModels apiResponseDocumentModels =
-                    (snapshot.data!.data as ApiResponseDocumentModels);
+        body: Column(
+          children: [
+            SizedBox(
+              height: 20,
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width * 0.036),
+              child: TextField(
+                decoration: InputDecoration(
+                    hintText: "Search for documents",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20))),
+                onChanged: (value) {
+                  searchDocument(value);
+                },
+              ),
+            ),
+            SizedBox(
+              height: 10,
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent:
+                            ResponsiveWidget.isSmallScreen(context)
+                                ? 800
+                                : (ResponsiveWidget.isMediumScreen(context)
+                                    ? 400
+                                    : 300),
+                        childAspectRatio: 3 / 2,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20),
+                    itemCount: documents.length,
+                    itemBuilder: (context, index) {
+                      DocumentModel document = documents[index];
 
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: ListView.builder(
-                      itemCount: apiResponseDocumentModels.documents.length,
-                      itemBuilder: (context, index) {
-                        DocumentModel document =
-                            apiResponseDocumentModels.documents[index];
+                      return InkWell(
+                        onTap: (() {
+                          navigateToDocument(context, document.id);
+                          // setState(() {
 
-                        return InkWell(
-                          onTap: (() {
-                            navigateToDocument(context, document.id);
-                          }),
-                          child: Card(
-                            margin: EdgeInsets.only(top: 10, bottom: 10),
-                            child: Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 20),
-                                child: Text(
-                                  document.title,
-                                  style: TextStyle(fontSize: 17),
-                                ),
+                          // });
+                        }),
+                        child: Card(
+                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Text(
+                                document.title,
+                                style: TextStyle(fontSize: 17),
                               ),
                             ),
                           ),
-                        );
-                      }),
-                );
-              }
-            }));
+                        ),
+                      );
+                    }),
+              ),
+            )
+          ],
+        ));
   }
 }

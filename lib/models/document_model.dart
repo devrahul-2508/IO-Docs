@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class DocumentModel {
@@ -40,16 +41,18 @@ class DocumentModel {
 
   factory DocumentModel.fromMap(Map<String, dynamic> map) {
     return DocumentModel(
-      id: map['_id'] as String,
-      uid: map['uid'] as String,
-      title: map['title'] as String,
-      content: List.from((map['content'] as List),
-    ));
+        id: map['_id'] as String,
+        uid: map['uid'] as String,
+        title: map['title'] as String,
+        content: List.from(
+          (map['content'] as List),
+        ));
   }
 
   String toJson() => json.encode(toMap());
 
-  factory DocumentModel.fromJson(String source) => DocumentModel.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory DocumentModel.fromJson(String source) =>
+      DocumentModel.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
   String toString() {
@@ -59,19 +62,34 @@ class DocumentModel {
   @override
   bool operator ==(covariant DocumentModel other) {
     if (identical(this, other)) return true;
-  
-    return 
-      other.id == id &&
-      other.uid == uid &&
-      other.title == title &&
-      listEquals(other.content, content);
+
+    return other.id == id &&
+        other.uid == uid &&
+        other.title == title &&
+        listEquals(other.content, content);
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^
-      uid.hashCode ^
-      title.hashCode ^
-      content.hashCode;
+    return id.hashCode ^ uid.hashCode ^ title.hashCode ^ content.hashCode;
+  }
+}
+
+class DocumentNotifier extends StateNotifier<List<DocumentModel>> {
+  DocumentNotifier(super.state);
+
+  void addDocument(DocumentModel document) {
+    state = [...state, document];
+  }
+
+  void updateDocument(DocumentModel document){
+     state = [
+        for (final t in state)
+          if (t.id == document.id) document else t
+      ];
+  }
+
+  void removeDocument(DocumentModel document){
+     state = state.where((t) => t.id != document.id).toList();
   }
 }
