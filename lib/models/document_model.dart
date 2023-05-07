@@ -9,11 +9,13 @@ class DocumentModel {
   final String uid;
   final String title;
   final List content;
+  final String? createdAt;
   DocumentModel({
     required this.id,
     required this.uid,
     required this.title,
     required this.content,
+    this.createdAt
   });
 
   DocumentModel copyWith({
@@ -21,12 +23,15 @@ class DocumentModel {
     String? uid,
     String? title,
     List? content,
+    String? createdAt
+    
   }) {
     return DocumentModel(
       id: id ?? this.id,
       uid: uid ?? this.uid,
       title: title ?? this.title,
       content: content ?? this.content,
+      createdAt: createdAt?? this.createdAt
     );
   }
 
@@ -36,6 +41,7 @@ class DocumentModel {
       'uid': uid,
       'title': title,
       'content': content,
+      'createdAt': createdAt
     };
   }
 
@@ -44,6 +50,7 @@ class DocumentModel {
         id: map['_id'] as String,
         uid: map['uid'] as String,
         title: map['title'] as String,
+        createdAt: map['createdAt'] as String,
         content: List.from(
           (map['content'] as List),
         ));
@@ -56,7 +63,7 @@ class DocumentModel {
 
   @override
   String toString() {
-    return 'DocumentModel(id: $id, uid: $uid, title: $title, content: $content)';
+    return 'DocumentModel(id: $id, uid: $uid, title: $title, content: $content, createdAt: $createdAt)';
   }
 
   @override
@@ -65,13 +72,14 @@ class DocumentModel {
 
     return other.id == id &&
         other.uid == uid &&
-        other.title == title &&
+        other.title == title && 
+        other.createdAt == createdAt &&
         listEquals(other.content, content);
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ uid.hashCode ^ title.hashCode ^ content.hashCode;
+    return id.hashCode ^ uid.hashCode ^ title.hashCode ^ content.hashCode ^ createdAt.hashCode;
   }
 }
 
@@ -82,14 +90,14 @@ class DocumentNotifier extends StateNotifier<List<DocumentModel>> {
     state = [...state, document];
   }
 
-  void updateDocument(DocumentModel document){
-     state = [
-        for (final t in state)
-          if (t.id == document.id) document else t
-      ];
+  void updateDocument(DocumentModel document) {
+    state = [
+      for (final t in state)
+        if (t.id == document.id) document else t
+    ];
   }
 
-  void removeDocument(DocumentModel document){
-     state = state.where((t) => t.id != document.id).toList();
+  void removeDocument(DocumentModel document) {
+    state = state.where((t) => t.id != document.id).toList();
   }
 }

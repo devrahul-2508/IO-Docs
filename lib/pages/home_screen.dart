@@ -12,6 +12,8 @@ import 'package:google_docs/widgets/loader.dart';
 import 'package:google_docs/widgets/responsive_widget.dart';
 import 'package:routemaster/routemaster.dart';
 
+import '../constants.dart';
+
 final documentProvider =
     StateNotifierProvider<DocumentNotifier, List<DocumentModel>>(
         (ref) => DocumentNotifier([]));
@@ -108,15 +110,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               height: 20,
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: width * 0.036),
-              child: TextField(
-                decoration: InputDecoration(
-                    hintText: "Search for documents",
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20))),
-                onChanged: (value) {
-                  searchDocument(value);
-                },
+              padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveWidget.isLargeScreen(context)
+                      ? width * 0.25
+                      : width * 0.036),
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Color(0xffbf1f3f4),
+                    borderRadius: BorderRadius.circular(10)),
+                child: TextField(
+                  decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: "Search for documents",
+                      border: InputBorder.none),
+                  onChanged: (value) {
+                    searchDocument(value);
+                  },
+                ),
               ),
             ),
             SizedBox(
@@ -136,9 +146,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         childAspectRatio: 3 / 2,
                         crossAxisSpacing: 20,
                         mainAxisSpacing: 20),
-                    itemCount: documents.length,
+                    itemCount: documents.length + 1,
                     itemBuilder: (context, index) {
-                      DocumentModel document = documents[index];
+                      if (index == 0) {
+                        return InkWell(
+                          onTap: (() {}),
+                          child: Card(
+                            margin: EdgeInsets.only(top: 10, bottom: 10),
+                            child: Center(
+                                child: Image.asset(
+                              "assets/images/gadd.png",
+                              height: 100,
+                            )),
+                          ),
+                        );
+                      }
+                      DocumentModel document = documents[index - 1];
 
                       return InkWell(
                         onTap: (() {
@@ -148,17 +171,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           // });
                         }),
                         child: Card(
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
-                          child: Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Text(
-                                document.title,
-                                style: TextStyle(fontSize: 17),
-                              ),
-                            ),
-                          ),
-                        ),
+                            margin: EdgeInsets.only(top: 10, bottom: 10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                    padding: EdgeInsets.fromLTRB(
+                                        0,
+                                        ResponsiveWidget.isLargeScreen(context)
+                                            ? 50
+                                            : ResponsiveWidget.isMediumScreen(
+                                                    context)
+                                                ? 70
+                                                : 120,
+                                        0,
+                                        ResponsiveWidget.isLargeScreen(context)
+                                            ? 50
+                                            : ResponsiveWidget.isMediumScreen(
+                                                    context)
+                                                ? 50
+                                                : 80),
+                                    child: Text(
+                                      document.title,
+                                      style: TextStyle(fontSize: 20),
+                                    )),
+                                Expanded(
+                                    child: Container(
+                                  color: Color(0xffbf1f3f4),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+                                      Image.asset(
+                                        "assets/images/gdocslogo.png",
+                                        height: 20,
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      Text(
+                                          "created on ${Constants.formatDate(document.createdAt!)}")
+                                    ],
+                                  ),
+                                ))
+                              ],
+                            )),
                       );
                     }),
               ),
